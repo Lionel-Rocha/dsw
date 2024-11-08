@@ -1,0 +1,35 @@
+ <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add" />
+  
+<div id="transactions">
+    <h2 class="list">Minhas Transações</h2>
+    <h3>Saldo final: <span>{{ balance }}</span></h3>
+    
+    <ul>
+      <li 
+        v-for="(item, index) in items" 
+        :key="item.title" 
+        @mouseover="hoveredIndex = index" 
+        @mouseleave="hoveredIndex = null"
+        :class="['transaction-item', { 'positive': item.positive, 'negative': !item.positive }]"
+      >
+        <span>{{ item.title }}: {{ item.positive ? '+' : '-' }}{{ item.value }}</span>
+        <button 
+          v-if="hoveredIndex === index" 
+          @click="remove(index)"
+          class="remove-button">
+          Remover
+        </button>
+      </li>
+    </ul>
+    
+    <h2 class='form'>Nova Transação:</h2>
+    <input type="text" v-model="newTitle" placeholder="Título" />
+    <input type="number" v-model="newValue" placeholder="Valor" />
+    <select v-model="isPositive">
+      <option :value="true">Positivo</option>
+      <option :value="false">Negativo</option>
+    </select>
+    <button @click="add">
+      <span class="material-symbols-outlined">add</span>
+    </button>
+  </div>
