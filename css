@@ -1,0 +1,36 @@
+.transaction-item {
+  position: relative; 
+  padding: 8px;
+  margin: 4px 0;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.transaction-item:hover {
+  background-color: #e0e0e0;
+}
+
+.remove-button {
+  float:right;
+  margin-left: 10px; 
+  cursor: pointer;
+  background-color: red; 
+  color: white;
+  border: none; 
+  padding: 5px 10px; 
+  border-radius: 4px; 
+  display: inline-block; 
+}
+
+.remove-button:hover {
+  background-color: darkred; 
+}
+
+.positive {
+  background-color: #d4edda; 
+}
+
+.negative {
+  background-color: #f8d7da; 
+}
