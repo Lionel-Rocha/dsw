@@ -107,18 +107,36 @@ app.post("/auth/login", async (req, res) => {
     }
 });
 
-app.get("/user/:id", checkToken, async (req, res) => {
-    const id = req.params.id;
+app.post('/user/changePassword', checkToken, async (req, res) => {
+    try {
+        const decodedToken = jwt.decode(req.body.userToken);
+        const userId = decodedToken.id;
 
-    // check if user exists
-    const user = await User.findById(id, "-password");
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ msg: "Usuário não encontrado." });
+        }
 
-    if (!user) {
-        return res.status(404).json({ msg: "Usuário não encontrado!" });
+        const currpass = req.body.currentPassword;
+        const newpass = req.body.newPassword;
+
+        const passwordMatch = await bcrypt.compare(currpass, user.password);
+        if (!passwordMatch) {
+            return res.status(422).json({ msg: "A senha antiga é inválida." });
+        }
+
+        const salt = await bcrypt.genSalt(12);
+        const hashedNewPassword = await bcrypt.hash(newpass, salt);
+
+        await User.findByIdAndUpdate(userId, { password: hashedNewPassword });
+
+        res.status(200).json({ msg: "Senha atualizada com sucesso!" });
+    } catch (err) {
+        console.error("Erro na atualização de senha:", err);
+        res.status(500).json({ msg: "Houve um erro na atualização da senha." });
     }
-
-    res.status(200).json({ user });
 });
+
 
 function checkToken(req, res, next) {
     const authHeader = req.headers["authorization"];
