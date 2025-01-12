@@ -30,4 +30,13 @@ const router = createRouter({
   routes,
 });
 
+import Board from '@/components/Board.vue';
+
+const routes = [
+  { path: '/login', component: Login },
+  { path: '/dashboard', component: Dashboard },
+  { path: '/board', component: Board },
+  { path: '/change-password', component: ChangePassword },
+];
+
 export default router;
