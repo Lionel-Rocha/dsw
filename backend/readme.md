@@ -7,7 +7,7 @@
 	3. DB_NAME 	
 	4. DB_HOST
 	5. DB_PORT
-	6.SECRET (para o token JWT)
+	6. SECRET (para o token JWT)
 
 ## Observações
 Nota 1:
