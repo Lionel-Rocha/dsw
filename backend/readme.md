@@ -18,3 +18,6 @@ Caso a instância do Mongo seja na nuvem, ver [esse link](https://www.mongodb.co
 
 Nota 3:
 Criptografia para não armazenar a senha do usuário “limpa” no banco de dados. 
+
+Nota 4:
+Transforma o documento Mongoose em um objeto simples, removendo qualquer estrutura de dados adicional
