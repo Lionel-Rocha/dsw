@@ -5,6 +5,7 @@ const connectDB = require('./utils/dbconnection');
 const userRoutes = require('./routes/user');
 const boardRoutes = require('./routes/board');
 const listRoutes = require('./routes/list');
+const cardRoutes = require('./routes/card');
 dotenv.config();
 
 const app = express();
@@ -16,7 +17,7 @@ connectDB();
 app.use('/user', userRoutes);
 app.use('/board', boardRoutes);
 app.use('/list', listRoutes);
-
+app.use('/card', cardRoutes);
 app.get('/', (req, res) => {
     res.status(200).json({ msg: "Bem-vindo à API!" });
 });
