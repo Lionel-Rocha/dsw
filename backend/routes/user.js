@@ -90,17 +90,15 @@ router.post('/auth/login', async (req, res) => {
 
 
 router.put('/changePassword', checkToken, async (req, res) => {
+    let {currpass, newpass} = req.body;
+
     try {
-        const decodedToken = jwt.decode(req.body.userToken);
-        const userId = decodedToken.id;
+        let userId = req.user;
 
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ msg: "Usuário não encontrado." });
         }
-
-        const currpass = req.body.currentPassword;
-        const newpass = req.body.newPassword;
 
         const passwordMatch = await bcrypt.compare(currpass, user.password);
         if (!passwordMatch) {
@@ -119,11 +117,9 @@ router.put('/changePassword', checkToken, async (req, res) => {
     }
 });
 
-router.post('/boards', async (req, res) => {
-    let {userToken} = req.body;
-    const decodedToken = jwt.decode(userToken);
-    const userId = decodedToken.id;
-    
+router.get('/boards', checkToken, async (req, res) => {
+    const userId = req.user;
+
     try {
         let userBoards = await getUserBoards(userId);
         res.status(200).json(userBoards);

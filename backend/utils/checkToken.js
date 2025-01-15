@@ -8,11 +8,17 @@ const checkToken = (req, res, next) => {
 
     try {
         const secret = process.env.SECRET;
-        jwt.verify(token, secret);
+        jwt.verify(token, secret, (err, decodedToken) => {
+            req.user = decodedToken.id;
+        });
+
         next();
     } catch (err) {
+        console.log(err);
         res.status(400).json({ msg: "O Token é inválido!" });
     }
 };
+
+
 
 module.exports = checkToken;

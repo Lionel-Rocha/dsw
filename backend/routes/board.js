@@ -2,17 +2,16 @@ const express = require("express");
 const router = express.Router();
 const Board = require("../models/Board");
 const BoardPermission = require("../models/BoardPermissions");
-const jwt = require("jsonwebtoken");
+const checkToken = require('../utils/checkToken');
 
-router.post('/create', async (req, res) => {
-   const {title, backgroundcolor, titlecolor, userToken} = req.body;
+router.post('/create', checkToken, async (req, res) => {
+   const {title, backgroundcolor, titlecolor} = req.body;
 
    if (!title || !backgroundcolor || !titlecolor) {
      return res.status(400).json({msg:"Argumentos inválidos."})
    }
 
-    const decodedToken = jwt.decode(userToken);
-    const userId = decodedToken.id;
+    const userId = req.user;
 
    const board = new Board({
        title,
@@ -45,7 +44,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkToken, async (req, res) => {
     let board = await Board.findById(req.params.id);
     if (board){
         await board.deleteOne();
@@ -55,11 +54,12 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
-    let {title, backgroundcolor, titlecolor} = req.body;
-    let id = req.params.id;
+router.put('/:id', checkToken, async (req, res) => {
 
-    let board = await Board.findById(id);
+    let {title, backgroundcolor, titlecolor} = req.body;
+    let boardId = req.params.id;
+
+    let board = await Board.findById(boardId);
 
     if (!board){
         res.status(404).json({msg: "Quadro não encontrado."});

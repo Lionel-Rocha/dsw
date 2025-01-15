@@ -9,6 +9,39 @@
 	5. DB_PORT
 	6. SECRET (para o token JWT)
 
+## Rotas
+`POST` user/auth/register 
+Requer: name, email, password, confirmpassword
+
+`POST` user/auth/login
+Requer: email, password
+
+`PUT` user/changePassword
+Requer: currpass, newpass
+
+`POST` user/boards
+
+`POST` board/create
+Requer: title, backgroundcolor, titlecolor
+
+`GET` board/id
+
+`DELETE` board/id
+
+`PUT` board/id
+Requer: title, backgroundcolor, titlecolor
+
+`POST` list/create
+Requer: boardId, title
+
+`GET` list/id
+
+`PUT` list/id
+Requer: title
+
+`DELETE` list/id
+
+
 ## Observações
 Nota 1:
 Absolutamente necessário para garantir que a conexão com o banco de dados seja estabelecida antes da API iniciar. Senão, o back-end não consegue ter acesso aos usuários.

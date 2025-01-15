@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const List = require("../models/List");
+const checkToken = require('../utils/checkToken');
 
-router.post('/create', async (req, res) => {
+router.post('/create', checkToken, async (req, res) => {
+
     const {boardId, title} = req.body;
     if (!boardId || !title) {
         res.status(400).send({msg:"Argumentos inválidos."});
@@ -34,7 +36,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkToken, async (req, res) => {
+
     let listId = req.params.id;
     let  {title} = req.body;
 
@@ -60,7 +63,7 @@ router.put('/:id', async (req, res) => {
 
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkToken, async (req, res) => {
     let list = await List.findById(req.params.id);
     if (list){
         await list.deleteOne();
