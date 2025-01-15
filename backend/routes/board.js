@@ -1,14 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const Board = require("../models/Board");
-const User = require("../models/User");
+const BoardPermission = require("../models/BoardPermissions");
+const jwt = require("jsonwebtoken");
 
 router.post('/create', async (req, res) => {
-   const {title, backgroundcolor, titlecolor} = req.body;
+   const {title, backgroundcolor, titlecolor, userToken} = req.body;
 
    if (!title || !backgroundcolor || !titlecolor) {
      return res.status(400).json({msg:"Argumentos inválidos."})
    }
+
+    const decodedToken = jwt.decode(userToken);
+    const userId = decodedToken.id;
 
    const board = new Board({
        title,
@@ -16,8 +20,15 @@ router.post('/create', async (req, res) => {
        titlecolor
    });
 
+   const boardPermission = new BoardPermission({
+       userId: userId,
+       boardId: board.id,
+       role: "admin"
+   });
+
    try{
        await board.save();
+       await boardPermission.save();
        res.status(201).json({msg:"Quadro criado com sucesso!"});
    } catch (error) {
        res.status(500).json({ msg: error });
@@ -28,23 +39,23 @@ router.post('/create', async (req, res) => {
 router.get('/:id', async (req, res) => {
     let board = await Board.findById(req.params.id);
     if (board){
-        res.json(board);
+        res.status(200).json(board);
     } else {
         res.status(404).json({msg:"Quadro não encontrado."});
     }
 });
 
-router.post('/delete/:id', async (req, res) => {
+router.delete('/:id', async (req, res) => {
     let board = await Board.findById(req.params.id);
     if (board){
-        await board.remove();
+        await board.deleteOne();
         res.status(200).json({msg:"Quadro removido."});
     } else {
         res.status(404).json({msg:"Quadro não encontrado."})
     }
 });
 
-router.post('/update/:id', async (req, res) => {
+router.put('/:id', async (req, res) => {
     let {title, backgroundcolor, titlecolor} = req.body;
     let id = req.params.id;
 

@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const checkToken = require('../utils/checkToken');
+const getUserBoards = require('../utils/getBoards');
 
 const router = express.Router();
 
@@ -88,7 +89,7 @@ router.post('/auth/login', async (req, res) => {
 });
 
 
-router.post('/changePassword', checkToken, async (req, res) => {
+router.put('/changePassword', checkToken, async (req, res) => {
     try {
         const decodedToken = jwt.decode(req.body.userToken);
         const userId = decodedToken.id;
@@ -117,5 +118,20 @@ router.post('/changePassword', checkToken, async (req, res) => {
         res.status(500).json({ msg: "Houve um erro na atualização da senha." });
     }
 });
+
+router.post('/boards', async (req, res) => {
+    let {userToken} = req.body;
+    const decodedToken = jwt.decode(userToken);
+    const userId = decodedToken.id;
+    
+    try {
+        let userBoards = await getUserBoards(userId);
+        res.status(200).json(userBoards);
+    } catch (error) {
+        res.status(500).json({ msg: error });
+    }
+
+});
+
 
 module.exports = router;
