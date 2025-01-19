@@ -26,7 +26,7 @@ const error = ref('');
 async function handleLogin() {
   try {
 
-    const response = await fetch('http://localhost:3000/auth/login', {
+    const response = await fetch('http://localhost:3000/user/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -39,9 +39,9 @@ async function handleLogin() {
     if (response.ok) {
       localStorage.setItem('token', data.token);
       alert('Login bem-sucedido!');
-      window.location.href = '/dashboard';
+      window.location.href = '/user/boards';
     } else {
-      error.value = data.message || 'Erro no login.';
+      error.value = data.msg || 'Erro no login.';
     }
   } catch (err) {
     error.value = err;

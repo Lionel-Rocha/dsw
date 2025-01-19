@@ -3,8 +3,8 @@
     <header>
       <nav>
 
-<!--        <router-link v-if="isAuthenticated" to="/dashboard">Dashboard</router-link>-->
-<!--        <button v-if="isAuthenticated" @click="logout">Logout</button>-->
+        <!--        <router-link v-if="isAuthenticated" to="/dashboard">Dashboard</router-link>-->
+        <!--        <button v-if="isAuthenticated" @click="logout">Logout</button>-->
       </nav>
     </header>
     <main>
