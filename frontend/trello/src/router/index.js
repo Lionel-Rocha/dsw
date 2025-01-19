@@ -1,42 +1,50 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from '@/components/Login.vue';
-import Dashboard from '@/components/Dashboard.vue';
-import ChangePassword from "@/components/ChangePassword.vue";
+import Login from '/src/components/Login.vue';
+
+import ChangePassword from "/src/components/ChangePassword.vue";
+import UserBoards from "/src/components/UserBoards.vue";
+import Board from "/src/components/Board.vue";
 
 const routes = [
-  { path: '/login', component: Login },
-  {
-    path: '/dashboard',
-    component: Dashboard,
-    beforeEnter: (to, from, next) => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('Acesso negado. Faça login.');
-        next('/login');
-      } else {
-        next();
-      }
+    {path: '/', component: Login},
+    {path: '/login', component: Login },
+    {path: '/change-password', component: ChangePassword, beforeEnter: (to, from, next) => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Acesso negado. Faça login.');
+                next('/login');
+            } else {
+                next();
+            }
+        },
     },
-  },
-  {
-    path: '/change-password',
-
-    component: ChangePassword,
-  },
+    {path: '/user/boards', component: UserBoards, beforeEnter: (to, from, next) => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Acesso negado. Faça login.');
+                next('/login');
+            } else {
+                next();
+            }
+        },
+    },
+    {path: '/board/:id', component: Board, beforeEnter: (to, from, next) => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Acesso negado. Faça login.');
+                next('/login');
+            } else {
+                next();
+            }
+        },
+    }
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+    history: createWebHistory(),
+    routes,
 });
 
-import Board from '@/components/Board.vue';
 
-const routes = [
-  { path: '/login', component: Login },
-  { path: '/dashboard', component: Dashboard },
-  { path: '/board', component: Board },
-  { path: '/change-password', component: ChangePassword },
-];
 
 export default router;
