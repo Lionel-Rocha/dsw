@@ -9,9 +9,14 @@ async function getUserBoards(userId) {
         const permissions = await BoardPermission.find({
             userId: objectIdUser,
             role: { $in: ['admin', 'member'] }
-        }).populate('boardId');
+        }).populate({
+            path: 'boardId',
+            match: { _id: { $exists: true } }, // Deve garantir que o quadro também existe!
+        });
 
-        return permissions.map(permission => permission.boardId);
+        return permissions
+            .filter(permission => permission.boardId)
+            .map(permission => permission.boardId);
     } catch (error) {
         return error;
     }

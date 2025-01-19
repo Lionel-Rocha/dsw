@@ -45,6 +45,7 @@ router.post('/auth/register', async (req, res) => {
         await user.save();
         res.status(201).json({ msg: "Usuário criado com sucesso!" });
     } catch (error) {
+
         res.status(500).json({ msg: error });
     }
 });
@@ -84,6 +85,7 @@ router.post('/auth/login', async (req, res) => {
 
         res.status(200).json({ msg: "Autenticação realizada com sucesso!", token });
     } catch (error) {
+        console.log(error);
         res.status(500).json({ msg: error });
     }
 });

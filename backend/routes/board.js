@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Board = require("../models/Board");
+const List = require("../models/List");
 const BoardPermission = require("../models/BoardPermissions");
 const checkToken = require('../utils/checkToken');
 
@@ -39,6 +40,20 @@ router.get('/:id', async (req, res) => {
     let board = await Board.findById(req.params.id);
     if (board){
         res.status(200).json(board);
+    } else {
+        res.status(404).json({msg:"Quadro não encontrado."});
+    }
+});
+
+router.get('/:id/lists', async (req, res) => {
+    let board = await Board.findById(req.params.id);
+    if (board){
+        let lists = await List.find({ boardId: req.params.id });
+        if (lists){
+            res.status(200).json(lists);
+        } else {
+            res.status(200).json({msg:"Não há listas."})
+        }
     } else {
         res.status(404).json({msg:"Quadro não encontrado."});
     }

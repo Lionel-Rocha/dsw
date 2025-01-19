@@ -15,7 +15,7 @@ const cardSchema = new mongoose.Schema({
    },
    file: {
        type: mongoose.Schema.Types.ObjectId,
-       ref: 'File'
+       ref: 'filesBucket.files'
    },
     created: {
        type: Date,

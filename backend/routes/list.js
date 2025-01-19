@@ -43,10 +43,10 @@ router.get('/:id/cards', checkToken, async (req, res) => {
     if (!list) {
         res.status(404).json({msg:"Lista não encontrada."});
     } else {
-        let cards = await Card.find({ list: list });
-        res.status(200).json(cards);
+        let cards = await Card.find({ list: list }).lean();
+        res.status(200).json({cards});
     }
-});
+})
 
 router.put('/:id', checkToken, async (req, res) => {
 
