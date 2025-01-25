@@ -1,185 +1,61 @@
 <template>
   <div class="list">
-    <div class="list-header">
-      <h3 v-if="!isEditing">{{ list.title }}<button v-if="!isEditing" @click="editTitle">
-        ✏️
-      </button></h3>
-      <input
-          v-if="isEditing"
-          v-model="list.title"
-          @blur="updateListTitle"
-          @keyup.enter="updateListTitle"
-      />
+    <!-- Campo para edição do título da lista -->
+    <input v-model="title" @blur="updateTitle" />
 
-    </div>
+    <!-- Listagem dos cartões -->
     <ul>
-      <li v-for="card in list.cards" :key="card._id">
-        <span>{{ card.title }}</span>
-        <button @click="removeCard(card)">X</button>
+      <li v-for="(card, index) in list.cards" :key="card.id">
+        <p>{{ card.content }}</p>
+        <small>Created: {{ card.createdAt }}</small>
+        <small>Last updated: {{ card.updatedAt }}</small>
+        <button @click="removeCard(index)">X</button>
       </li>
     </ul>
 
-
-
-    <button v-if="!isAddingCard" @click="toggleAddCardForm">+ Add Card</button>
-
-    <!-- Formulário para adicionar cartão (escondido por padrão) -->
-    <form v-if="isAddingCard" @submit.prevent="addCard">
-      <div>
-        <label for="cardTitle">Card Title</label>
-        <input v-model="newCard.title" id="cardTitle" required placeholder="Title" />
-      </div>
-      <div>
-        <label for="cardDescription">Card Description (optional)</label>
-        <textarea v-model="newCard.description" id="cardDescription" placeholder="Description (optional)"></textarea>
-      </div>
-      <div>
-        <label for="cardFile">Upload File (optional)</label>
-        <input type="file" @change="handleFileUpload" />
-      </div>
-      <button type="submit">Add Card</button>
-      <button type="button" @click="toggleAddCardForm">Cancel</button>
-    </form>
+    <!-- Campo para adicionar novo cartão -->
+    <input v-model="newCardContent" placeholder="New card" />
+    <button @click="addCard">Add Card</button>
   </div>
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue';
+import { ref, toRefs } from 'vue';
 
-const props = defineProps({
-  list: Object,       // Lista completa
-  listId: String,     // ID da lista, passado de Boards.vue
-  index: Number,
-  cards: Object
-});
+// Recebe propriedades e define eventos emitidos
+const props = defineProps({ list: Object, index: Number });
+const emit = defineEmits(['edit-list', 'add-card']);
 
-const newCard = ref({
-  title: '',
-  description: '',
-  file: null,          // Para armazenar o arquivo (se enviado)
-});
+// Faz referência às propriedades reativas
+const { list, index } = toRefs(props);
 
-const isEditing = ref(false);
-const isAddingCard = ref(false);
+// Define os estados locais
+const title = ref(list.value.title);
+const newCardContent = ref('');
 
-
-function editTitle() {
-  isEditing.value = true;
+// Atualiza o título da lista e emite evento
+function updateTitle() {
+  emit('edit-list', index.value, title.value);
 }
 
-
-
-function toggleAddCardForm() {
-  isAddingCard.value = !isAddingCard.value;
-}
-
-// Função para atualizar o título da lista
-async function updateListTitle() {
-  try {
-    const response = await fetch(`http://localhost:3000/list/${props.listId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({ title: props.list.title }),
-    });
-    if (!response.ok) {
-      throw new Error('Erro ao atualizar título');
-    }
-    isEditing.value = false;
-    console.log('Título atualizado com sucesso');
-  } catch (error) {
-    console.error('Erro ao atualizar título:', error);
-  }
-}
-
-async function getCards(){
-  try {
-    const response = await fetch(`http://localhost:3000/list/${props.listId}/cards`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-    });
-    const data = await response.json();
-    if (response.ok) {
-      props.list.cards = data.cards;
-    }
-
-  } catch (err) {
-    console.error('Erro durante a requisição:', err);
-
-  }
-}
-async function addCard() {
-  try {
-    // Preparando os dados do cartão
-    const cardData = {
-      listId: props.listId,
-      title: newCard.value.title,
-      description: newCard.value.description || null,
-      file: newCard.value.file || null,
+// Adiciona um novo cartão à lista e emite evento
+function addCard() {
+  if (newCardContent.value.trim()) {
+    const card = {
+      id: Date.now(),
+      content: newCardContent.value,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-
-    const response = await fetch('http://localhost:3000/card/create', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify(cardData),
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao adicionar cartão');
-    }
-
-    const addedCard = await response.json();
-    props.list.cards.push(addedCard);  // Atualiza os cartões da lista
-    resetForm();  // Limpa o formulário
-    isAddingCard.value = false;
-    console.log('Cartão adicionado com sucesso');
-  } catch (error) {
-    console.error('Erro ao adicionar cartão:', error);
+    emit('add-card', index.value, card);
+    newCardContent.value = '';
   }
 }
 
-// Função para lidar com o upload de arquivo
-function handleFileUpload(event) {
-  const file = event.target.files[0];
-  if (file) {
-    newCard.value.file = file;
-  }
+// Remove um cartão da lista pelo índice
+function removeCard(cardIndex) {
+  list.value.cards.splice(cardIndex, 1);
 }
-
-// Função para limpar o formulário
-function resetForm() {
-  newCard.value.title = '';
-  newCard.value.description = '';
-  newCard.value.file = null;
-}
-
-// Função para remover um cartão
-async function removeCard(cardIndex) {
-  const cardId = props.list.cards[cardIndex]._id;
-  try {
-    const response = await fetch(`http://localhost:3000/card/${cardId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      }
-    });
-    if (!response.ok) {
-      throw new Error('Erro ao remover cartão');
-    }
-    props.list.cards.splice(cardIndex, 1);  // Remove o cartão da lista
-  } catch (error) {
-    console.error('Erro ao remover cartão:', error);
-  }
-}
-onMounted(getCards);
 </script>
 
 <style scoped>
@@ -190,8 +66,7 @@ onMounted(getCards);
 
 button {
   cursor: pointer;
-  font-size: 1.2em;
+  font-size: 1em;
+  margin-top: 5px;
 }
-
-
 </style>
