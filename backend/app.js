@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const connectDB = require('./utils/dbconnection');
+const dbconnection = require('./utils/dbconnection');
 const userRoutes = require('./routes/user');
 const boardRoutes = require('./routes/board');
 const listRoutes = require('./routes/list');
@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-connectDB();
+dbconnection.connectDB();
 
 app.use('/user', userRoutes);
 app.use('/board', boardRoutes);
