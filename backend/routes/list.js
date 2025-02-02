@@ -3,6 +3,7 @@ const router = express.Router();
 const List = require("../models/List");
 const Card = require("../models/Card");
 const checkToken = require('../utils/checkToken');
+const {Types} = require("mongoose");
 
 router.post('/create', checkToken, async (req, res) => {
 
@@ -38,7 +39,10 @@ router.get('/:id', async (req, res) => {
 });
 
 router.get('/:id/cards', checkToken, async (req, res) => {
-   const list = await List.findById(req.params.id).lean();
+    let listId = req.params.id;
+    console.log(listId);
+    let list = await List.findById(listId);
+
 
     if (!list) {
         res.status(404).json({msg:"Lista não encontrada."});
@@ -76,7 +80,10 @@ router.put('/:id', checkToken, async (req, res) => {
 });
 
 router.delete('/:id', checkToken, async (req, res) => {
-    let list = await List.findById(req.params.id);
+    let listId = req.params.id;
+    let list = await List.findById(listId);
+
+
     if (list){
         await list.deleteOne();
         res.status(200).json({msg:"Lista removida."});
