@@ -1,5 +1,7 @@
 <template>
   <div class="boards">
+    <router-link to="/change-password">Trocar a senha</router-link>
+    <button @click="logout">Logout</button>
     <h2>Meus Quadros</h2>
     <ul>
       <li
@@ -44,6 +46,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import router from "../../router/index.js";
+import ChangePassword from "./ChangePassword.vue";
 
 const boards = ref([]);
 const showModal = ref(false);
@@ -53,6 +56,10 @@ const newBoard = ref({
   titlecolor: '#000000',
 });
 
+function logout() {
+  localStorage.removeItem('token'); // Remove o token do armazenamento local
+  router.push('/login');
+}
 // Carregar os quadros do usuário
 async function fetchBoards() {
   try {

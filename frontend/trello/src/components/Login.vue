@@ -13,7 +13,17 @@
       <button type="submit" label="submit">Login</button>
     </form>
     <p v-if="error">{{ error }}</p>
+    <div>
+      <p>Não tem uma conta?
+        <router-link to="/register">Criar conta</router-link>
+      </p>
+
+      <p>Esqueceu sua senha?</p>
+      <router-link to="/reset-password-challenge">Recuperar senha</router-link>
+    </div>
   </div>
+
+
 </template>
 
 <script setup>
