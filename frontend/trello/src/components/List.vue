@@ -1,15 +1,24 @@
 <template>
   <div class="list">
-    <!-- Campo para edição do título da lista -->
-    <input v-model="title" @blur="updateTitle" />
+    <div class="list-header">
+      <!-- Campo para edição do título da lista -->
+      <input v-model="title" @blur="updateTitle" />
+      <button @click="emit('remove-list', index)">🗑</button>
+    </div>
+
+    <!-- Botões para mover a lista -->
+    <div class="list-move">
+      <button @click="emit('move-list', index, -1)">⬆</button>
+      <button @click="emit('move-list', index, 1)">⬇</button>
+    </div>
 
     <!-- Listagem dos cartões -->
     <ul>
-      <li v-for="(card, index) in list.cards" :key="card.id">
+      <li v-for="(card, cardIndex) in list.cards" :key="card.id">
         <p>{{ card.content }}</p>
         <small>Created: {{ card.createdAt }}</small>
         <small>Last updated: {{ card.updatedAt }}</small>
-        <button @click="removeCard(index)">X</button>
+        <button @click="removeCard(cardIndex)">X</button>
       </li>
     </ul>
 
@@ -22,23 +31,17 @@
 <script setup>
 import { ref, toRefs } from 'vue';
 
-// Recebe propriedades e define eventos emitidos
 const props = defineProps({ list: Object, index: Number });
-const emit = defineEmits(['edit-list', 'add-card']);
+const emit = defineEmits(['edit-list', 'add-card', 'remove-list', 'move-list']);
 
-// Faz referência às propriedades reativas
 const { list, index } = toRefs(props);
-
-// Define os estados locais
 const title = ref(list.value.title);
 const newCardContent = ref('');
 
-// Atualiza o título da lista e emite evento
 function updateTitle() {
   emit('edit-list', index.value, title.value);
 }
 
-// Adiciona um novo cartão à lista e emite evento
 function addCard() {
   if (newCardContent.value.trim()) {
     const card = {
@@ -52,7 +55,6 @@ function addCard() {
   }
 }
 
-// Remove um cartão da lista pelo índice
 function removeCard(cardIndex) {
   list.value.cards.splice(cardIndex, 1);
 }
@@ -62,6 +64,18 @@ function removeCard(cardIndex) {
 .list {
   border: 1px solid #ccc;
   padding: 10px;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-move {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 
 button {
