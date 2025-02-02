@@ -11,6 +11,7 @@
         @remove-list="removeList"
         @edit-list="editList"
         @move-card="moveCard"
+        @move-list="moveList"
       />
     </div>
     <button @click="addList">+ Add List</button>
@@ -33,17 +34,15 @@ async function fetchBoardInfo() {
   try {
     const savedLists = localStorage.getItem(`trelloLists-${boardId}`);
     if (savedLists) {
-      // Carregar listas do Local Storage
       lists.value = JSON.parse(savedLists);
     } else {
-      // Chamada ao backend se não houver dados no Local Storage
       const response = await fetch(`http://localhost:3000/board/${boardId}/lists`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       if (response.ok) {
         const data = await response.json();
         lists.value = data;
-        saveBoard(); // Salva localmente para futuras interações
+        saveBoard();
       } else {
         console.error('Erro ao buscar listas do backend.');
       }
@@ -81,8 +80,19 @@ function addCard(index, card) {
 function moveCard(cardIndex, fromListIndex, toListIndex) {
   const [card] = lists.value[fromListIndex].cards.splice(cardIndex, 1);
   lists.value[toListIndex].cards.push(card);
-  card.updatedAt = new Date().toISOString(); // Atualiza a data de alteração
+  card.updatedAt = new Date().toISOString();
   saveBoard();
+}
+
+// Função para mover uma lista para cima ou para baixo
+function moveList(index, direction) {
+  const newIndex = index + direction;
+  if (newIndex >= 0 && newIndex < lists.value.length) {
+    const temp = lists.value[index];
+    lists.value[index] = lists.value[newIndex];
+    lists.value[newIndex] = temp;
+    saveBoard();
+  }
 }
 
 onMounted(fetchBoardInfo);
