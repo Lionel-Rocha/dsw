@@ -1,63 +1,230 @@
 <template>
   <div class="list">
     <div class="list-header">
-      <!-- Campo para edição do título da lista -->
-      <input v-model="title" @blur="updateTitle" />
-      <button @click="emit('remove-list', index)">🗑</button>
+      <h3 v-if="!isEditing">{{ list.title }}<button v-if="!isEditing" @click="editTitle">
+        ✏️
+      </button></h3>
+      <button class="move-btn" @click="emit('move-list', index, -1)">↑</button>
+      <button class="move-btn" @click="emit('move-list', index, 1)">↓</button>
+      <button class="remove-btn" @click="removeList">🗑️</button>
+      <input
+          v-if="isEditing"
+          v-model="list.title"
+          @blur="updateListTitle"
+          @keyup.enter="updateListTitle"
+          @remove-list="removeList"
+          @edit-list="editList"
+          @move-card="moveCard"
+      />
     </div>
-
-    <!-- Botões para mover a lista -->
-    <div class="list-move">
-      <button @click="emit('move-list', index, -1)">⬆</button>
-      <button @click="emit('move-list', index, 1)">⬇</button>
-    </div>
-
-    <!-- Listagem dos cartões -->
     <ul>
-      <li v-for="(card, cardIndex) in list.cards" :key="card.id">
-        <p>{{ card.content }}</p>
-        <small>Created: {{ card.createdAt }}</small>
-        <small>Last updated: {{ card.updatedAt }}</small>
-        <button @click="removeCard(cardIndex)">X</button>
+      <li v-for="(card, index) in list.cards" :key="card._id">
+        <span>{{ card.title }}</span>
+        <p style="font-size: x-small">{{card.description}}</p>
+        <p style="font-size: xx-small">Criado em {{card.created}}</p>
+        <p style="font-size: xx-small">Modificado por último em {{card.lastModified}}</p>
+        <button @click="removeCard(index)">X</button>
       </li>
     </ul>
-
-    <!-- Campo para adicionar novo cartão -->
-    <input v-model="newCardContent" placeholder="New card" />
-    <button @click="addCard">Add Card</button>
+    <button v-if="!isAddingCard" @click="toggleAddCardForm">+ Add Card</button>
+    <!-- Formulário para adicionar cartão (escondido por padrão) -->
+    <form v-if="isAddingCard" @submit.prevent="addCard">
+      <div>
+        <label for="cardTitle">Card Title</label>
+        <input v-model="newCard.title" id="cardTitle" required placeholder="Title" />
+      </div>
+      <div>
+        <label for="cardDescription">Card Description (optional)</label>
+        <textarea v-model="newCard.description" id="cardDescription" placeholder="Description (optional)"></textarea>
+      </div>
+      <div>
+        <label for="cardFile">Upload File (optional)</label>
+        <input type="file" @change="handleFileUpload" />
+      </div>
+      <button type="submit">Add Card</button>
+      <button type="button" @click="toggleAddCardForm">Cancel</button>
+    </form>
   </div>
 </template>
 
 <script setup>
-import { ref, toRefs } from 'vue';
+import { onMounted, ref } from 'vue';
+const emit = defineEmits(['edit-list', 'add-card', 'remove-list', 'move-list', 'move-card']);
 
-const props = defineProps({ list: Object, index: Number });
-const emit = defineEmits(['edit-list', 'add-card', 'remove-list', 'move-list']);
+const props = defineProps({
+  list: Object, // Lista completa
+  listId: String, // ID da lista, passado de Boards.vue
+  index: Number,
+  cards: Object
+});
 
-const { list, index } = toRefs(props);
-const title = ref(list.value.title);
-const newCardContent = ref('');
+const newCard = ref({
+  title: '',
+  description: '',
+  file: null, // Para armazenar o arquivo (se enviado)
+});
 
-function updateTitle() {
-  emit('edit-list', index.value, title.value);
+const isEditing = ref(false);
+const isAddingCard = ref(false);
+
+function editTitle() {
+  isEditing.value = true;
 }
 
-function addCard() {
-  if (newCardContent.value.trim()) {
-    const card = {
-      id: Date.now(),
-      content: newCardContent.value,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    emit('add-card', index.value, card);
-    newCardContent.value = '';
+function toggleAddCardForm() {
+  isAddingCard.value = !isAddingCard.value;
+}
+
+// Função para atualizar o título da lista
+async function updateListTitle() {
+  try {
+    const response = await fetch(`http://localhost:3000/list/${props.listId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({ title: props.list.title }),
+    });
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar título');
+    }
+    isEditing.value = false;
+    console.log('Título atualizado com sucesso');
+  } catch (error) {
+    console.error('Erro ao atualizar título:', error);
   }
 }
 
-function removeCard(cardIndex) {
-  list.value.cards.splice(cardIndex, 1);
+// Função para remover a lista
+
+function removeList(index) {
+  const listId = props.list._id;
+
+  // Confirmar a exclusão antes de proceder
+  if (!confirm('Você tem certeza que deseja excluir esta lista?')) {
+    return; // Se o usuário cancelar, não faz nada
+  }
+
+  fetch(`http://localhost:3000/list/${listId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    }
+  })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Erro ao excluir lista');
+        }
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error('Erro ao remover lista:', error);
+      });
 }
+
+function editList(index, newTitle) {
+  const listId = props.list._id;
+  fetch(`http://localhost:3000/list/${listId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    },
+    body: JSON.stringify({ title: newTitle }),
+  })
+      .then(() => {
+        props.list.title = newTitle; // Atualiza localmente
+      })
+      .catch(error => console.error('Erro ao editar lista:', error));
+}
+
+function moveCard(cardIndex, fromListIndex, toListIndex) {
+  const [card] = props.list.cards.splice(cardIndex, 1);
+  props.list.cards.push(card);
+  emit('move-card', card, fromListIndex, toListIndex);
+}
+
+async function getCards() {
+  try {
+    const response = await fetch(`http://localhost:3000/list/${props.listId}/cards`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+    });
+    const data = await response.json();
+    if (response.ok) {
+      props.list.cards = data.cards;
+    }
+  } catch (err) {
+    console.error('Erro durante a requisição:', err);
+  }
+}
+
+async function addCard() {
+  try {
+    const cardData = {
+      listId: props.listId,
+      title: newCard.value.title,
+      description: newCard.value.description || null,
+      file: newCard.value.file || null,
+    };
+    const response = await fetch('http://localhost:3000/card/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify(cardData),
+    });
+    if (!response.ok) {
+      throw new Error('Erro ao adicionar cartão');
+    }
+    const addedCard = await response.json();
+    window.location.reload(); // Se preferir usar reload após adicionar o card
+    resetForm();  // Limpa o formulário
+    isAddingCard.value = false;
+    console.log('Cartão adicionado com sucesso');
+  } catch (error) {
+    console.error('Erro ao adicionar cartão:', error);
+  }
+}
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (file) {
+    newCard.value.file = file;
+  }
+}
+
+function resetForm() {
+  newCard.value.title = '';
+  newCard.value.description = '';
+  newCard.value.file = null;
+}
+
+// Função para remover um cartão
+async function removeCard(index) {
+  const cardId = props.list.cards[index]._id;
+  try {
+    const response = await fetch(`http://localhost:3000/card/${cardId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      }
+    });
+    if (!response.ok) {
+      throw new Error('Erro ao remover cartão');
+    }
+    window.location.reload();
+  } catch (error) {
+    console.error('Erro ao remover cartão:', error);
+  }
+}
+
+onMounted(getCards);
 </script>
 
 <style scoped>
@@ -65,22 +232,8 @@ function removeCard(cardIndex) {
   border: 1px solid #ccc;
   padding: 10px;
 }
-
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.list-move {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 10px;
-}
-
 button {
   cursor: pointer;
-  font-size: 1em;
-  margin-top: 5px;
+  font-size: 1.2em;
 }
 </style>
