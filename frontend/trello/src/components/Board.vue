@@ -37,6 +37,7 @@
         </ul>
       </div>
     </div>
+    <button class="delete-btn" @click="deleteBoard">🗑 Delete Board</button>
 
   </div>
 </template>
@@ -180,6 +181,35 @@ function shareBoard() {
   closeShareModal();
 }
 
+// Função para excluir o board
+async function deleteBoard() {
+  if (!confirm('Tem certeza de que deseja excluir este board? Essa ação não pode ser desfeita.')) {
+    return;
+  }
+
+  try {
+    // Remover do Local Storage
+    localStorage.removeItem(`trelloLists-${boardId}`);
+
+  
+    const response = await fetch(`http://localhost:3000/board/${boardId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    });
+
+    if (response.ok) {
+      console.log('Board removido com sucesso');
+    } else {
+      console.error('Erro ao remover o board do backend.');
+    }
+
+    // Redirecionar para a página inicial
+    router.back();
+  } catch (error) {
+    console.error('Erro ao remover o board:', error);
+  }
+}
+
 
 
 onMounted(() => {
@@ -219,5 +249,19 @@ onMounted(() => {
 .lists {
   display: flex;
   gap: 20px;
+}
+
+.delete-btn {
+  background-color: red;
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+.delete-btn:hover {
+  background-color: darkred;
 }
 </style>
